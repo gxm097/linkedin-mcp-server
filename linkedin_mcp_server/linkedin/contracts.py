@@ -198,6 +198,79 @@ def refuse_an_invalid_message(
     )
 
 
+def comment_action_result(
+    url: str,
+    status: str,
+    message: str,
+    *,
+    posted: bool = False,
+    retry_safe: bool = True,
+    excerpt: str | None | _Omitted = _OMITTED,
+    excerpt_truncated: bool = False,
+) -> dict[str, Any]:
+    """Build a structured response for the comment_on_post tool.
+
+    ``posted`` carries the same narrow meaning ``sent`` carries for a message:
+    true only once the comment was observed on the post under this account,
+    never as a claim that submission alone succeeded. ``retry_safe`` is the
+    authority a caller keys a retry on, and it is false from the moment a
+    submit is attempted, because a comment that posted and failed to confirm
+    is indistinguishable here from one that never left the box — and a second
+    call would leave the post carrying the comment twice.
+
+    ``excerpt`` is present only when the caller passes it, including when the
+    value is null, and it answers the one question the rest of the result
+    cannot: *which* post this was. A permalink read out of ``search_posts`` is
+    not aligned to the result it sat beside, so a caller that means a
+    particular post has nothing on the wire to check the landing against. A
+    dry run stands on the page with the route guard already satisfied, so it
+    hands back the post's own words and lets the caller do that matching.
+    Null says the text could not be read, never that the post is empty.
+    ``excerpt_truncated`` rides with it and says the post runs on past what
+    was returned, so an absent phrase is not evidence the post lacks it.
+
+    It is the post's *card*, which is the narrowest container that is still
+    certainly this post: the author, the body, the reaction counts, and the
+    reply suggestions LinkedIn offers under the box. Measured, those
+    suggestions quote the post back -- one read "Well deserved, Caitlyn" on a
+    post by Caitlyn -- so a phrase found only in the tail of an excerpt is
+    not necessarily a phrase the post itself used. Matching one post against
+    another is what the excerpt is for and is unaffected; deciding *what a
+    post said* wants the body, which is everything above the counts.
+    """
+    result = {
+        "url": url,
+        "status": status,
+        "message": message,
+        "posted": posted,
+        "retry_safe": retry_safe,
+    }
+    if not isinstance(excerpt, _Omitted):
+        result["excerpt"] = excerpt
+        result["excerpt_truncated"] = excerpt_truncated
+    return result
+
+
+def refuse_an_invalid_comment(post_url: str, comment: str) -> dict[str, Any] | None:
+    """Return the browser-free refusal for unsafe comment text, or ``None``.
+
+    The same character policy a message gets, and for the same reason: the text
+    reaches a contenteditable surface through ``insertText``, so every C0
+    control but a line break, DEL, and the Unicode separators are refused
+    before a session is acquired rather than guessed at on the page.
+    """
+    reason = None
+    if not comment.strip():
+        reason = "Comment must contain non-whitespace characters."
+    elif any(_refused_character(character) for character in comment):
+        reason = "Comment must not contain control characters other than line breaks."
+    elif not normalize_message_text(comment):
+        reason = "Comment must contain non-whitespace characters."
+    if reason is None:
+        return None
+    return comment_action_result(post_url, "invalid_comment", reason)
+
+
 @dataclass
 class ExtractedSection:
     """Text and compact references extracted from a loaded LinkedIn section."""

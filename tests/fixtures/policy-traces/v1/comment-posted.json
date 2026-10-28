@@ -1,0 +1,190 @@
+{
+  "call": {
+    "arguments": {
+      "confirm_comment": true,
+      "post": "urn:li:activity:7123456789012345678",
+      "submission_outcome": "posted"
+    },
+    "method": "comment_on_post"
+  },
+  "events": [
+    {
+      "call": "comment_on_post",
+      "callback_id": "callback-1",
+      "event": "framenavigated",
+      "kind": "listener.add",
+      "section": "post"
+    },
+    {
+      "call": "comment_on_post",
+      "extra": {
+        "target_url": "https://www.linkedin.com/feed/update/urn:li:activity:7123456789012345678/",
+        "wait_until": "domcontentloaded"
+      },
+      "kind": "boundary.trace",
+      "label": "extractor-before-goto",
+      "section": "post"
+    },
+    {
+      "call": "comment_on_post",
+      "kind": "navigate",
+      "landed_url": "https://www.linkedin.com/feed/update/urn:li:activity:7123456789012345678/",
+      "requested_url": "https://www.linkedin.com/feed/update/urn:li:activity:7123456789012345678/",
+      "section": "post",
+      "timeout_ms": 30000,
+      "wait_until": "domcontentloaded"
+    },
+    {
+      "call": "comment_on_post",
+      "description": "goto https://www.linkedin.com/feed/update/urn:li:activity:7123456789012345678/",
+      "kind": "boundary.stabilize",
+      "result": null,
+      "section": "post"
+    },
+    {
+      "call": "comment_on_post",
+      "extra": {
+        "target_url": "https://www.linkedin.com/feed/update/urn:li:activity:7123456789012345678/",
+        "wait_until": "domcontentloaded"
+      },
+      "kind": "boundary.trace",
+      "label": "extractor-after-goto",
+      "section": "post"
+    },
+    {
+      "call": "comment_on_post",
+      "kind": "boundary.auth_quick",
+      "result": null,
+      "section": "post"
+    },
+    {
+      "call": "comment_on_post",
+      "callback_id": "callback-1",
+      "event": "framenavigated",
+      "kind": "listener.remove",
+      "section": "post"
+    },
+    {
+      "call": "comment_on_post",
+      "kind": "boundary.rate_limit",
+      "section": "post"
+    },
+    {
+      "arg": {
+        "reference": "/feed/update/urn:li:activity:7123456789012345678/"
+      },
+      "call": "comment_on_post",
+      "kind": "evaluate",
+      "operation": "comment_surface",
+      "program_digest": "8df2501e311a",
+      "section": "post"
+    },
+    {
+      "arg": {
+        "reference": "/feed/update/urn:li:activity:7123456789012345678/"
+      },
+      "call": "comment_on_post",
+      "kind": "evaluate_handle",
+      "operation": "comment_owner",
+      "program_digest": "c974de6d9bca",
+      "section": "post"
+    },
+    {
+      "call": "comment_on_post",
+      "handle": "handle-1",
+      "kind": "handle.as_element",
+      "present": true,
+      "section": "post"
+    },
+    {
+      "arg": {
+        "comment": "Congratulations on the move.",
+        "reference": "/feed/update/urn:li:activity:7123456789012345678/"
+      },
+      "call": "comment_on_post",
+      "handle": "handle-1",
+      "kind": "handle.evaluate",
+      "operation": "comment_write",
+      "program_digest": "331b8dd2f16b",
+      "section": "post"
+    },
+    {
+      "arg": {
+        "comment": "Congratulations on the move.",
+        "reference": "/feed/update/urn:li:activity:7123456789012345678/"
+      },
+      "call": "comment_on_post",
+      "handle": "handle-1",
+      "kind": "handle.evaluate",
+      "operation": "comment_submit_ready",
+      "program_digest": "99114fc92bc1",
+      "section": "post"
+    },
+    {
+      "call": "comment_on_post",
+      "kind": "sleep",
+      "reason": "sleep",
+      "seconds": 0.05,
+      "section": "post"
+    },
+    {
+      "arg": {
+        "comment": "Congratulations on the move.",
+        "reference": "/feed/update/urn:li:activity:7123456789012345678/"
+      },
+      "call": "comment_on_post",
+      "handle": "handle-1",
+      "kind": "handle.evaluate",
+      "operation": "comment_submit_ready",
+      "program_digest": "99114fc92bc1",
+      "section": "post"
+    },
+    {
+      "arg": {
+        "comment": "Congratulations on the move.",
+        "reference": "/feed/update/urn:li:activity:7123456789012345678/"
+      },
+      "call": "comment_on_post",
+      "handle": "handle-1",
+      "kind": "handle.evaluate",
+      "operation": "comment_submit",
+      "program_digest": "8c3f74698720",
+      "section": "post"
+    },
+    {
+      "arg": {
+        "comment": "Congratulations on the move.",
+        "reference": "/feed/update/urn:li:activity:7123456789012345678/"
+      },
+      "call": "comment_on_post",
+      "handle": "handle-1",
+      "kind": "handle.evaluate",
+      "operation": "comment_confirm",
+      "program_digest": "723b91366c99",
+      "section": "post"
+    },
+    {
+      "call": "comment_on_post",
+      "handle": "handle-1",
+      "kind": "handle.evaluate",
+      "operation": "comment_dispose",
+      "program_digest": "0e7af697817d",
+      "section": "post"
+    },
+    {
+      "call": "comment_on_post",
+      "handle": "handle-1",
+      "kind": "handle.dispose",
+      "section": "post"
+    }
+  ],
+  "result": {
+    "message": "The comment was submitted and is showing on the post.",
+    "posted": true,
+    "retry_safe": false,
+    "status": "posted",
+    "url": "https://www.linkedin.com/feed/update/urn:li:activity:7123456789012345678/"
+  },
+  "scenario": "comment_on_post__posted",
+  "schema_version": 1
+}

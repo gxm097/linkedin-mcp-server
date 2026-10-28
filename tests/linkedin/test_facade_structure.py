@@ -31,6 +31,7 @@ FACADE_PACKAGE_IMPORTERS = {
 
 PUBLIC_SIGNATURES = {
     "click_button_by_text": "(self, text: 'str', *, scope: 'str' = 'main', timeout: 'int' = 5000) -> 'bool'",
+    "comment_on_post": "(self, post: 'str', comment: 'str', *, confirm_comment: 'bool' = False) -> 'dict[str, Any]'",
     "connect_with_person": "(self, username: 'str', *, note: 'str | None' = None) -> 'dict[str, Any]'",
     "extract_feed": "(self, num_posts: 'int' = 10) -> 'ExtractedSection'",
     "extract_page": "(self, url: 'str', section_name: 'str', max_scrolls: 'int | None' = None) -> 'ExtractedSection'",
@@ -55,6 +56,7 @@ PUBLIC_SIGNATURES = {
 
 DELEGATES = {
     "click_button_by_text": ("_content", "click_button_by_text"),
+    "comment_on_post": ("_post_actions", "comment_on_post"),
     "connect_with_person": ("_connection", "connect_with_person"),
     "extract_feed": ("_feed", "extract_feed"),
     "extract_page": ("_capture", "extract_page"),
@@ -79,6 +81,7 @@ DELEGATES = {
 
 DELEGATE_CALLS = {
     "click_button_by_text": "self._content.click_button_by_text(text, scope=scope, timeout=timeout)",
+    "comment_on_post": "self._post_actions.comment_on_post(post, comment, confirm_comment=confirm_comment)",
     "connect_with_person": "self._connection.connect_with_person(username, note=note)",
     "extract_feed": "self._feed.extract_feed(num_posts)",
     "extract_page": "self._capture.extract_page(url, section_name, max_scrolls)",
@@ -111,6 +114,7 @@ FACADE_STATE = {
     "_jobs",
     "_message_sender",
     "_person",
+    "_post_actions",
     "_posts",
 }
 

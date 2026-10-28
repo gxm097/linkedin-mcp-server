@@ -774,6 +774,91 @@ async def _messaging_submission_scenario(
     return recorder.trace({"method": "send_message", "arguments": arguments}, result)
 
 
+_COMMENT_REFERENCE = "urn:li:activity:7123456789012345678"
+_COMMENT_ROUTE = (
+    "https://www.linkedin.com/feed/update/urn:li:activity:7123456789012345678/"
+)
+_COMMENT_TEXT = "Congratulations on the move."
+_COMMENT_EXCERPT = {
+    "text": "I'm excited to start my new job as the Director of Marketing",
+    "truncated": False,
+}
+
+
+async def _comment_dry_run_scenario() -> dict[str, Any]:
+    """The probe: it reads the surface and the post's words, and types nothing.
+
+    The excerpt is the whole reason the dry run exists as more than a yes/no:
+    a permalink out of search_posts is not aligned to the result beside it, so
+    the caller needs the post's own text to tell which post it reached.
+    """
+    recorder = TraceRecorder("comment_on_post__dry_run", _COMMON_ALLOWED)
+    clock = FakeClock(recorder)
+    page = _page(recorder)
+    page.goto_landings.append(_COMMENT_ROUTE)
+    page.script("evaluate:comment_surface", "ready")
+    page.script("evaluate:comment_excerpt", _COMMENT_EXCERPT)
+
+    extractor = _extractor(page)
+    async with boundaries(recorder, clock):
+        with recorder.context("comment_on_post", "post"):
+            result = await extractor.comment_on_post(
+                _COMMENT_REFERENCE, _COMMENT_TEXT, confirm_comment=False
+            )
+    page.assert_clean()
+    return recorder.trace(
+        {
+            "method": "comment_on_post",
+            "arguments": {"post": _COMMENT_REFERENCE, "confirm_comment": False},
+        },
+        result,
+    )
+
+
+async def _comment_submission_scenario(outcome: str) -> dict[str, Any]:
+    """The write, pinned on the post's card rather than on a form.
+
+    ``absent`` then ``ready`` is the post page's own sequence: the control that
+    posts a comment is built from the editor's input event, so it does not
+    exist at the moment the text lands and is briefly inert once it does. Past
+    the click nothing is retry-safe, which is what the ``outcome_unknown``
+    ending exists to record.
+    """
+    recorder = TraceRecorder(f"comment_on_post__{outcome}", _COMMON_ALLOWED)
+    clock = FakeClock(recorder)
+    page = _page(recorder)
+    page.goto_landings.append(_COMMENT_ROUTE)
+    page.script("evaluate:comment_surface", "ready")
+    page.script("evaluate_handle:comment_owner", True)
+    page.script("handle-1.evaluate:comment_write", "written")
+    page.script("handle-1.evaluate:comment_submit_ready", "absent", "ready")
+    page.script("handle-1.evaluate:comment_submit", "clicked")
+    page.script(
+        "handle-1.evaluate:comment_confirm",
+        "confirmed" if outcome == "posted" else "pending",
+    )
+    page.script("handle-1.evaluate:comment_dispose", None)
+
+    extractor = _extractor(page)
+    async with boundaries(recorder, clock):
+        with recorder.context("comment_on_post", "post"):
+            result = await extractor.comment_on_post(
+                _COMMENT_REFERENCE, _COMMENT_TEXT, confirm_comment=True
+            )
+    page.assert_clean()
+    return recorder.trace(
+        {
+            "method": "comment_on_post",
+            "arguments": {
+                "post": _COMMENT_REFERENCE,
+                "confirm_comment": True,
+                "submission_outcome": outcome,
+            },
+        },
+        result,
+    )
+
+
 async def _messaging_cancellation_scenario() -> dict[str, Any]:
     recorder = TraceRecorder("send_message__confirmation_cancelled", _COMMON_ALLOWED)
     clock = FakeClock(recorder)
@@ -1094,6 +1179,7 @@ async def _facade_contract_trace() -> dict[str, Any]:
 
 
 TOOL_FACADE_METHODS = {
+    "comment_on_post",
     "connect_with_person",
     "extract_feed",
     "extract_page",
@@ -1172,6 +1258,8 @@ async def build_policy_traces() -> dict[str, dict[str, Any]]:
             "sent", "First\r\n \r\nSecond\n"
         ),
         "message-cancelled.json": await _messaging_cancellation_scenario(),
+        "comment-dry-run.json": await _comment_dry_run_scenario(),
+        "comment-posted.json": await _comment_submission_scenario("posted"),
         "message-blank.json": await _invalid_message_scenario("   ", "blank"),
         "message-c0.json": await _invalid_message_scenario("before\tafter", "c0"),
         "message-del.json": await _invalid_message_scenario("text\x7f", "del"),

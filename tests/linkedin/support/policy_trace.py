@@ -538,7 +538,7 @@ class ScriptedPage:
         return self._take(f"evaluate:{operation}")
 
     async def evaluate_handle(
-        self, expression: str, *, arg: Any = _MISSING
+        self, expression: str, arg: Any = _MISSING
     ) -> ScriptedHandle:
         operation = semantic_program_id(expression)
         values: dict[str, Any] = {
@@ -670,6 +670,18 @@ def semantic_program_id(program: str) -> str:
 
     compact = " ".join(program.split())
     checks = (
+        # The comment programs come first. They inline the same shared
+        # inspectors the messaging ones do -- insertText, a pinned button's
+        # click -- so a marker inherited from those would claim them.
+        ("return 'no_card'", "comment_surface"),
+        ("truncated: text.length > arg.limit", "comment_excerpt"),
+        ("__linkedinMcpComment =", "comment_owner"),
+        ("pinned.ownedComment = arg.comment;", "comment_write"),
+        ("controlsBeforeWrite.includes(control)", "comment_submit_ready"),
+        ("pinned.submitted = true;", "comment_submit"),
+        ("const expected = arg.comment.replace", "comment_confirm"),
+        ("range.selectNodeContents(editor)", "comment_cleanup"),
+        ("delete owner.__linkedinMcpComment", "comment_dispose"),
         ("performance.timeOrigin", "document_origin"),
         ("element.ownerDocument.location.href", "owner_document_address"),
         ("MAX_HEADING_CONTAINERS", "root_content"),

@@ -1,0 +1,104 @@
+{
+  "call": {
+    "arguments": {
+      "confirm_comment": false,
+      "post": "urn:li:activity:7123456789012345678"
+    },
+    "method": "comment_on_post"
+  },
+  "events": [
+    {
+      "call": "comment_on_post",
+      "callback_id": "callback-1",
+      "event": "framenavigated",
+      "kind": "listener.add",
+      "section": "post"
+    },
+    {
+      "call": "comment_on_post",
+      "extra": {
+        "target_url": "https://www.linkedin.com/feed/update/urn:li:activity:7123456789012345678/",
+        "wait_until": "domcontentloaded"
+      },
+      "kind": "boundary.trace",
+      "label": "extractor-before-goto",
+      "section": "post"
+    },
+    {
+      "call": "comment_on_post",
+      "kind": "navigate",
+      "landed_url": "https://www.linkedin.com/feed/update/urn:li:activity:7123456789012345678/",
+      "requested_url": "https://www.linkedin.com/feed/update/urn:li:activity:7123456789012345678/",
+      "section": "post",
+      "timeout_ms": 30000,
+      "wait_until": "domcontentloaded"
+    },
+    {
+      "call": "comment_on_post",
+      "description": "goto https://www.linkedin.com/feed/update/urn:li:activity:7123456789012345678/",
+      "kind": "boundary.stabilize",
+      "result": null,
+      "section": "post"
+    },
+    {
+      "call": "comment_on_post",
+      "extra": {
+        "target_url": "https://www.linkedin.com/feed/update/urn:li:activity:7123456789012345678/",
+        "wait_until": "domcontentloaded"
+      },
+      "kind": "boundary.trace",
+      "label": "extractor-after-goto",
+      "section": "post"
+    },
+    {
+      "call": "comment_on_post",
+      "kind": "boundary.auth_quick",
+      "result": null,
+      "section": "post"
+    },
+    {
+      "call": "comment_on_post",
+      "callback_id": "callback-1",
+      "event": "framenavigated",
+      "kind": "listener.remove",
+      "section": "post"
+    },
+    {
+      "call": "comment_on_post",
+      "kind": "boundary.rate_limit",
+      "section": "post"
+    },
+    {
+      "arg": {
+        "reference": "/feed/update/urn:li:activity:7123456789012345678/"
+      },
+      "call": "comment_on_post",
+      "kind": "evaluate",
+      "operation": "comment_surface",
+      "program_digest": "8df2501e311a",
+      "section": "post"
+    },
+    {
+      "arg": {
+        "limit": 600,
+        "reference": "/feed/update/urn:li:activity:7123456789012345678/"
+      },
+      "call": "comment_on_post",
+      "kind": "evaluate",
+      "operation": "comment_excerpt",
+      "program_digest": "8977382357b6",
+      "section": "post"
+    }
+  ],
+  "result": {
+    "excerpt": "I'm excited to start my new job as the Director of Marketing",
+    "excerpt_truncated": false,
+    "message": "The post accepts a comment from this account. Nothing was typed or submitted. Check the excerpt is the post you meant, then call again with confirm_comment True to post it.",
+    "posted": false,
+    "retry_safe": true,
+    "status": "dry_run",
+    "url": "https://www.linkedin.com/feed/update/urn:li:activity:7123456789012345678/"
+  },
+  "scenario": "comment_on_post__dry_run",
+  "schema_version": 1
+}

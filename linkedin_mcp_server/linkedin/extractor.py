@@ -24,6 +24,7 @@ from linkedin_mcp_server.linkedin.jobs import JobReader
 from linkedin_mcp_server.linkedin.message_sender import MessageSender
 from linkedin_mcp_server.linkedin.navigation import PageNavigator
 from linkedin_mcp_server.linkedin.person import PersonReader
+from linkedin_mcp_server.linkedin.post_actions import PostActions
 from linkedin_mcp_server.linkedin.posts import PostSearch
 from linkedin_mcp_server.linkedin.profile_page import ProfilePageReader
 from linkedin_mcp_server.linkedin.session import PageSession
@@ -66,6 +67,7 @@ class LinkedInExtractor:
         job_pages = JobPageReader(session, navigator, content)
         self._jobs = JobReader(navigator, capture, job_pages)
         self._posts = PostSearch(capture)
+        self._post_actions = PostActions(session, navigator)
         self._conversations = ConversationReader(
             session, navigator, content, profile_page
         )
@@ -225,6 +227,20 @@ class LinkedInExtractor:
             keywords,
             date_posted=date_posted,
             max_pages=max_pages,
+        )
+
+    async def comment_on_post(
+        self,
+        post: str,
+        comment: str,
+        *,
+        confirm_comment: bool = False,
+    ) -> dict[str, Any]:
+        """Comment on a post, or report what a comment would meet."""
+        return await self._post_actions.comment_on_post(
+            post,
+            comment,
+            confirm_comment=confirm_comment,
         )
 
     async def get_inbox(self, limit: int = 20) -> dict[str, Any]:

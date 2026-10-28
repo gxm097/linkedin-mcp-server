@@ -55,9 +55,11 @@ __all__ = [
     "normalize_job_id",
     "normalize_opaque_id",
     "normalize_person_identifier",
+    "normalize_post_reference",
     "normalize_profile_urn",
     "normalize_thread_id",
     "person_profile_url",
+    "post_permalink_url",
 ]
 
 # linkedin.com and every host under it. There is no canonical host to normalize
@@ -136,6 +138,8 @@ _ORGANIZATION_ROUTES = {"company"}
 # instructions. Refusing it would refuse this server's own output.
 _JOB_ROUTE = ("jobs", "view")
 _THREAD_ROUTE = ("messaging", "thread")
+_FEED_UPDATE_ROUTE = ("feed", "update")
+_POSTS_ROUTE = ("posts",)
 
 # A LinkedIn job id is the number in /jobs/view/<id>. Everything that produces
 # one here extracts ``\d+``, and anything else navigates to a 404 that costs a
@@ -144,6 +148,18 @@ _NUMERIC_ID = re.compile(r"^[0-9]+$")
 
 _PROFILE_URN_PREFIX = "urn:li:fsd_profile:"
 _PROFILE_URN_ID = re.compile(r"^[A-Za-z0-9_-]+$")
+
+# The three post entity URN types, and the id floor, are deliberately the same
+# ones feed_payload.py recognizes when it builds a permalink out of a payload:
+# a reference this module refuses is one no read tool can have handed back, and
+# a reference it accepts has to round-trip through the same shape. Comment,
+# reaction and profile URNs are not post permalinks and are not matched.
+_POST_URN = re.compile(r"^urn:li:(?:ugcPost|share|activity):[0-9]{10,}$")
+# The /posts/<slug> spelling, which carries the author vanity name and the
+# entity id in one segment. Mirrors feed_payload.POST_SLUG_URL_RE's slug group.
+_POST_SLUG = re.compile(
+    r"^[A-Za-z0-9_-]+?-(?:ugcPost|activity|share)-[0-9]+-[A-Za-z0-9_-]+$"
+)
 
 
 def _decoded(value: str) -> str | None:
@@ -484,6 +500,51 @@ def normalize_thread_id(value: str) -> str:
             "Pass an existing conversation's thread id."
         )
     return thread_id
+
+
+def normalize_post_reference(value: str) -> str:
+    """The canonical permalink path for a post, from a reference to it.
+
+    Accepts the entity URN (``urn:li:activity:7…``), the ``/posts/<slug>``
+    spelling, a full permalink in either form, and a site-relative path. Returns
+    the path rather than an identifier because the two forms live on different
+    routes and neither is derivable from the other: a slug carries an author
+    vanity name the URN does not, and an id the slug spells differently. Both are
+    permalinks LinkedIn answers on, and ``get_feed`` and ``search_posts`` hand
+    back either, so a reference is kept in the form it arrived in.
+
+    Raises:
+        InvalidReferenceError: when *value* names no post.
+    """
+    candidate = value.strip()
+    # The bare forms first. Neither parses as an address: a URN reaches the URL
+    # branch as the host `urn` with an unreadable port, and a slug as a hostname
+    # with no route, so both would be refused there for the wrong reason.
+    if _POST_URN.fullmatch(candidate):
+        return f"/feed/update/{quote(candidate, safe=':')}/"
+    if _POST_SLUG.fullmatch(candidate):
+        return f"/posts/{quote(candidate, safe='')}"
+    urn = _id_after_route(candidate, _FEED_UPDATE_ROUTE, want="post")
+    if urn is not None and _POST_URN.fullmatch(urn):
+        return f"/feed/update/{quote(urn, safe=':')}/"
+    slug = _id_after_route(candidate, _POSTS_ROUTE, want="post")
+    if slug is not None and _POST_SLUG.fullmatch(slug):
+        return f"/posts/{quote(slug, safe='')}"
+    raise InvalidReferenceError(
+        "post is not a LinkedIn post reference. Pass the post URN "
+        "(urn:li:activity:…) or a permalink as a previous result returned it "
+        "in references, with no extra path or query around it."
+    )
+
+
+def post_permalink_url(reference: str) -> str:
+    """Post URL for a path ``normalize_post_reference`` already built.
+
+    The path is escaped there, where the route decides what a segment may hold:
+    the URN's colons are path syntax a browser keeps, while a slug may carry
+    none. Nothing is escaped again here.
+    """
+    return f"https://www.linkedin.com{reference}"
 
 
 def normalize_profile_urn(value: str) -> str:

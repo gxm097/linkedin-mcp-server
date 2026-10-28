@@ -16,6 +16,10 @@
         "coroutine": true,
         "signature": "(self, text: 'str', *, scope: 'str' = 'main', timeout: 'int' = 5000) -> 'bool'"
       },
+      "comment_on_post": {
+        "coroutine": true,
+        "signature": "(self, post: 'str', comment: 'str', *, confirm_comment: 'bool' = False) -> 'dict[str, Any]'"
+      },
       "connect_with_person": {
         "coroutine": true,
         "signature": "(self, username: 'str', *, note: 'str | None' = None) -> 'dict[str, Any]'"
@@ -98,6 +102,7 @@
       }
     },
     "tool_methods": [
+      "comment_on_post",
       "connect_with_person",
       "extract_feed",
       "extract_page",
@@ -123,6 +128,35 @@
         "input": {
           "additionalProperties": false,
           "properties": {},
+          "type": "object"
+        },
+        "output": {
+          "additionalProperties": true,
+          "type": "object"
+        }
+      },
+      "comment_on_post": {
+        "input": {
+          "additionalProperties": false,
+          "properties": {
+            "comment": {
+              "description": "Comment text. LF, CRLF and CR all end a line; an empty line\nseparates paragraphs and is kept. Whitespace-only lines count as\nempty, and leading and trailing whitespace of the whole comment\nis removed, as LinkedIn does when posting. Tab, other control\ncharacters, DEL, U+0085, U+2028 and U+2029 are refused.",
+              "type": "string"
+            },
+            "confirm_comment": {
+              "description": "Must be True to post the comment",
+              "type": "boolean"
+            },
+            "post": {
+              "description": "The post's permalink or entity URN. Accepts\n``urn:li:activity:…``, ``/feed/update/<urn>/``,\n``/posts/<slug>`` and the full URL form of either.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "post",
+            "comment",
+            "confirm_comment"
+          ],
           "type": "object"
         },
         "output": {

@@ -44,6 +44,7 @@ def _make_mock_extractor(result: dict) -> MagicMock:
     mock.get_my_profile = AsyncMock(return_value=result)
     mock.search_companies = AsyncMock(return_value=result)
     mock.search_posts = AsyncMock(return_value=result)
+    mock.comment_on_post = AsyncMock(return_value=result)
     mock.get_company_employees = AsyncMock(return_value=result)
     mock.extract_page = AsyncMock(
         return_value=ExtractedSection(text="some text", references=[])
@@ -248,6 +249,15 @@ _A_VALID_CALL = [
     ),
     ("feed", "get_feed", {}),
     ("post", "search_posts", {"keywords": "python"}),
+    (
+        "post",
+        "comment_on_post",
+        {
+            "post": "urn:li:activity:7123456789012345678",
+            "comment": "Nice write-up.",
+            "confirm_comment": False,
+        },
+    ),
 ]
 
 
